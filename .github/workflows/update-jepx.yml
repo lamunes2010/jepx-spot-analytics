@@ -1,0 +1,46 @@
+name: Update JEPX Spot Market Data
+
+on:
+  schedule:
+    # JST 10:10 〜 11:40 の間、10分おきにスマート追従 (UTC 1:10〜2:40)
+    - cron: '10,20,30,40,50 1 * * *'
+    - cron: '0,10,20,30,40 2 * * *'
+    # 予備チェック (JST 12:30, 15:00, 18:00)
+    - cron: '30 3,6,9 * * *'
+  workflow_dispatch: # 手動実行ボタン
+
+permissions:
+  contents: write
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
+
+      - name: Python環境のセットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: JEPXデータの取得
+        id: fetch
+        run: |
+          if [ ! -f "data/spots-2018.json" ]; then
+            echo "初回実行のため、全年度（2018〜最新）データを自動取得します..."
+            python fetch_jepx.py --all
+            echo "updated=true" >> $GITHUB_OUTPUT
+            echo "latest_date=initial-all" >> $GITHUB_OUTPUT
+          else
+            python fetch_jepx.py
+          fi
+
+      - name: 差分がある場合のみ自動コミット＆プッシュ
+        if: steps.fetch.outputs.updated == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add data/
+          git commit -m "Update JEPX spot data: ${{ steps.fetch.outputs.latest_date }}"
+          git push
