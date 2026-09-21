@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JEPX Spot Analytics - 電力スポット価格・期間比較分析</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-[#0b1120] text-slate-100 antialiased min-h-screen flex flex-col">
+
+    <!-- トップヘッダー -->
+    <header class="bg-[#1e2530] border-b border-slate-700 sticky top-0 z-50 shadow-md">
+        <div class="max-w-[1700px] w-full mx-auto px-4">
+            <div class="relative flex justify-between items-center h-14 py-2">
+                <!-- 左: ロゴ・タイトル -->
+                <div class="flex items-center space-x-2.5 flex-shrink-0">
+                    <div class="w-7 h-7 rounded bg-[#0284c7] flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                        ⚡
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-base font-extrabold text-white tracking-tight">JEPX Spot Analytics</span>
+                    </div>
+                </div>
+
+                <!-- 中央: メインタブナビゲーション (PC画面の中央に配置) -->
+                <nav class="hidden md:flex items-center space-x-1.5 bg-slate-900/80 p-1 rounded-lg border border-slate-700/80 shadow-inner md:absolute md:left-1/2 md:-translate-x-1/2">
+                    <button class="tab-btn px-4 py-1.5 text-xs md:text-sm font-extrabold rounded-md transition-all border-b-2 border-blue-400 text-blue-400 bg-slate-800/60" data-tab="daily">
+                        電力スポット価格
+                    </button>
+                    <button class="tab-btn px-4 py-1.5 text-xs md:text-sm font-extrabold rounded-md transition-all border-b-2 border-transparent text-slate-400 hover:text-white hover:bg-slate-800/40" data-tab="calendar">
+                        期間比較分析
+                    </button>
+                </nav>
+
+                <!-- 右: スマホ用ハンバーガーメニューボタン (スマホ表示のみ) -->
+                <div class="flex items-center space-x-2 flex-shrink-0 md:hidden">
+                    <button id="btn-mobile-menu-toggle" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors focus:outline-none" title="メニューを開く">
+                        <i data-lucide="menu" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- スマホ用ドロップダウンメニュー -->
+            <div id="mobile-menu-dropdown" class="hidden md:hidden border-t border-slate-700/80 py-3 space-y-2 animate-in fade-in slide-in-from-top-2 duration-150">
+                <button class="mobile-tab-btn active w-full py-3 px-4 rounded-xl font-extrabold text-sm flex items-center justify-center gap-2 shadow-sm transition-all" data-tab="daily">
+                    <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+                    <span>電力スポット価格</span>
+                </button>
+                <button class="mobile-tab-btn w-full py-3 px-4 rounded-xl font-extrabold text-sm flex items-center justify-center gap-2 shadow-sm transition-all" data-tab="calendar">
+                    <i data-lucide="calendar" class="w-4 h-4"></i>
+                    <span>期間比較分析</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="flex-1 max-w-[1700px] w-full mx-auto px-4 py-3 space-y-4">
+
+        <!-- ==================== TAB 1: 日次比較マトリクス (2画面スタック) ==================== -->
+        <div id="tab-content-daily" class="tab-content space-y-4">
+            
+            <!-- 上段: 基準日 (テーブル A) -->
+            <div class="space-y-1.5">
+                <!-- 上段 コントロールバー & 凡例 -->
+                <div class="bg-[#18202c] border border-slate-700 rounded-t px-3 py-2 flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+                    
+                    <!-- 凡例バー (スマホ時は上部に配置、PC時は右側) -->
+                    <div class="order-first md:order-last flex items-center justify-between md:justify-start space-x-2.5 text-xs md:text-sm">
+                        <span class="font-bold text-slate-300 flex-shrink-0">凡例</span>
+                        <div class="legend-container flex flex-col flex-1 max-w-[340px]">
+                            <!-- 目盛り数値 -->
+                            <div class="flex text-[9px] sm:text-[10px] md:text-[10.5px] font-num text-slate-300 font-semibold w-full">
+                                <span class="flex-1 text-right pr-0.5">0.00</span>
+                                <span class="flex-1 text-right pr-0.5">3.00</span>
+                                <span class="flex-1 text-right pr-0.5">6.00</span>
+                                <span class="flex-1 text-right pr-0.5">9.00</span>
+                                <span class="flex-1 text-right pr-0.5">12.00</span>
+                                <span class="flex-1 text-right pr-0.5">15.00</span>
+                                <span class="flex-1 text-right pr-0.5">18.00</span>
+                                <span class="flex-1 text-right pr-0.5">22.00</span>
+                                <span class="flex-1 text-right pr-0.5">26.00</span>
+                                <span class="w-1.5 md:w-2.5"></span>
+                            </div>
+                            <!-- カラーバー -->
+                            <div class="flex h-2 md:h-2.5 rounded-sm overflow-hidden gap-[1px] w-full shadow-inner">
+                                <div class="flex-1 h-full" style="background:#1e1b4b" title="〜0.01円 (ディープインディゴ)"></div>
+                                <div class="flex-1 h-full" style="background:#0369a1" title="0.01〜3.00円 (サファイアブルー)"></div>
+                                <div class="flex-1 h-full" style="background:#0284c7" title="3.00〜6.00円 (スカイブルー)"></div>
+                                <div class="flex-1 h-full" style="background:#0d9488" title="6.00〜9.00円 (ティール)"></div>
+                                <div class="flex-1 h-full" style="background:#10b981" title="9.00〜12.00円 (エメラルド)"></div>
+                                <div class="flex-1 h-full" style="background:#84cc16" title="12.00〜15.00円 (ライム)"></div>
+                                <div class="flex-1 h-full" style="background:#eab308" title="15.00〜18.00円 (アンバー)"></div>
+                                <div class="flex-1 h-full" style="background:#f97316" title="18.00〜22.00円 (オレンジ)"></div>
+                                <div class="flex-1 h-full" style="background:#ef4444" title="22.00〜26.00円 (レッド)"></div>
+                                <div class="flex-1 h-full" style="background:linear-gradient(to right, #be123c, #c026d3, #7c3aed, #3b0764)" title="26.00円超〜55円超 (深紅・マゼンタ・パープル高騰グラデーション)"></div>
+                            </div>
+                        </div>
+
+                        <!-- 分断マーク凡例 (PC時のみ表示) -->
+                        <div class="hidden md:flex items-center gap-1.5 pl-3 border-l border-slate-700 text-xs font-bold text-white flex-shrink-0">
+                            <span class="font-num font-bold">--o--o--</span>
+                            <span>分断</span>
+                        </div>
+                    </div>
+
+                    <!-- 受渡日 操作エリア -->
+                    <div class="flex items-center flex-wrap gap-1.5 sm:gap-2">
+                        <span class="text-xs sm:text-sm font-bold text-slate-300 whitespace-nowrap">受渡日:</span>
+                        <button id="btn-prev-date-a" class="px-2 sm:px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs sm:text-sm font-bold border border-slate-600 transition-colors whitespace-nowrap">
+                            ＜ 前日
+                        </button>
+                        
+                        <!-- クリックでカレンダーが開く日付表示ボックス -->
+                        <div id="current-date-display-a" class="flex items-center gap-1.5 bg-[#0f172a] hover:bg-slate-800 border border-slate-600 hover:border-blue-400 px-2.5 sm:px-3.5 py-1 rounded text-white font-num font-bold text-xs sm:text-sm cursor-pointer transition-all shadow-sm whitespace-nowrap select-none" title="クリックしてカレンダーから日付を選択">
+                            <span class="text-blue-400 text-sm">📅</span>
+                            <span id="date-text-a">--年--月--日 (-)</span>
+                            <input type="date" id="date-picker-a" class="sr-only">
+                        </div>
+
+                        <button id="btn-next-date-a" class="px-2 sm:px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs sm:text-sm font-bold border border-slate-600 transition-colors whitespace-nowrap">
+                            翌日 ＞
+                        </button>
+                        <button id="btn-today-date-a" class="px-2 sm:px-2.5 py-1 rounded bg-blue-900/60 hover:bg-blue-800 text-blue-300 text-xs sm:text-sm font-bold border border-blue-600 transition-colors whitespace-nowrap">
+                            最新日
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- 上段 マトリクス表 -->
+                <div id="enechange-matrix-container-a" class="w-full"></div>
+            </div>
+
+            <!-- 下段: 比較日 (テーブル B) -->
+            <div class="space-y-1.5">
+                <!-- 下段 コントロールバー -->
+                <div class="bg-[#18202c] border border-slate-700 rounded-t px-3 py-2 flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+                    <div class="flex items-center flex-wrap gap-1.5 sm:gap-2">
+                        <span class="text-xs sm:text-sm font-bold text-slate-300 whitespace-nowrap">比較日:</span>
+                        <button id="btn-prev-date-b" class="px-2 sm:px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs sm:text-sm font-bold border border-slate-600 transition-colors whitespace-nowrap">
+                            ＜ 前日
+                        </button>
+                        
+                        <div id="current-date-display-b" class="flex items-center gap-1.5 bg-[#0f172a] hover:bg-slate-800 border border-slate-600 hover:border-blue-400 px-2.5 sm:px-3.5 py-1 rounded text-white font-num font-bold text-xs sm:text-sm cursor-pointer transition-all shadow-sm whitespace-nowrap select-none" title="クリックしてカレンダーから日付を選択">
+                            <span class="text-purple-400 text-sm">📅</span>
+                            <span id="date-text-b">--年--月--日 (-)</span>
+                            <input type="date" id="date-picker-b" class="sr-only">
+                        </div>
+
+                        <button id="btn-next-date-b" class="px-2 sm:px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs sm:text-sm font-bold border border-slate-600 transition-colors whitespace-nowrap">
+                            翌日 ＞
+                        </button>
+                        <button id="btn-today-date-b" class="px-2 sm:px-2.5 py-1 rounded bg-blue-900/60 hover:bg-blue-800 text-blue-300 text-xs sm:text-sm font-bold border border-blue-600 transition-colors whitespace-nowrap">
+                            最新日
+                        </button>
+                        
+                        <!-- クイック比較プリセット -->
+                        <div class="hidden sm:flex items-center space-x-1.5 pl-2 border-l border-slate-700">
+                            <button id="btn-compare-prevday" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold border border-slate-600 whitespace-nowrap">
+                                基準日前日
+                            </button>
+                            <button id="btn-compare-prevweek" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold border border-slate-600 whitespace-nowrap">
+                                1週間前(同曜日)
+                            </button>
+                            <button id="btn-compare-prevyear" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold border border-slate-600 whitespace-nowrap">
+                                1年前(同日)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="hidden md:block text-xs text-slate-400 whitespace-nowrap">
+                        <span>↕️ 2つの表は横スクロールが連動します</span>
+                    </div>
+                </div>
+
+                <!-- 下段 マトリクス表 -->
+                <div id="enechange-matrix-container-b" class="w-full"></div>
+            </div>
+
+            <!-- 下部グラフエリア -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 pt-2">
+                <!-- 48コマ 価格推移チャート -->
+                <div class="bg-[#1e2530] p-3.5 rounded-lg border border-slate-700 shadow space-y-2">
+                    <div class="flex flex-wrap items-center justify-between border-b pb-2 border-slate-700 gap-2">
+                        <div class="flex items-center gap-3">
+                            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                                <i data-lucide="trending-up" class="w-4 h-4 text-blue-400"></i>
+                                48コマ 価格推移
+                            </h2>
+                            <!-- 比較日重ねて表示チェックボックス -->
+                            <label class="flex items-center gap-1.5 text-xs text-purple-300 font-bold bg-[#0f172a] hover:bg-slate-800 px-2.5 py-1 rounded border border-purple-900/60 cursor-pointer transition-colors shadow-sm" title="比較日(破線)のデータを重ねてグラフに表示します">
+                                <input type="checkbox" id="toggle-compare-chart" class="rounded accent-purple-500 cursor-pointer">
+                                <span>比較日を重ねて表示 (破線)</span>
+                            </label>
+                        </div>
+                        <div class="flex items-center gap-1.5 flex-wrap" id="area-toggles"></div>
+                    </div>
+                    <div class="h-56 w-full">
+                        <canvas id="daily-price-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 約定総量・入札量チャート -->
+                <div class="bg-[#1e2530] p-3.5 rounded-lg border border-slate-700 shadow space-y-2">
+                    <div class="border-b pb-2 border-slate-700">
+                        <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i data-lucide="bar-chart-2" class="w-4 h-4 text-blue-400"></i>
+                            受渡日 約定総量・売り買い入札量 (万kWh)
+                        </h2>
+                    </div>
+                    <div class="h-56 w-full">
+                        <canvas id="volume-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ==================== TAB 2: 長期カレンダー (2期間 左右並列比較 & エリア・時間帯分析) ==================== -->
+        <div id="tab-content-calendar" class="tab-content hidden space-y-3.5">
+            
+            <!-- カレンダー共通コントロールバー (エリア & 時間帯) -->
+            <div class="bg-[#1e2530] p-3.5 rounded-lg border border-slate-700 shadow-md flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-6 h-6 rounded bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-sm">
+                        📅
+                    </div>
+                    <div>
+                        <span class="text-sm md:text-base font-bold text-white">期間比較分析 (日次推移・2期間比較)</span>
+                        <span class="hidden md:inline text-xs text-slate-400 ml-1.5">（行クリックで電力スポット価格へ移動）</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3 text-xs md:text-sm w-full md:w-auto">
+                    <!-- エリア選択 -->
+                    <div class="flex items-center justify-between sm:justify-start gap-2 bg-[#0f172a] px-3 py-1.5 rounded-md border border-slate-700 shadow-sm w-full sm:w-auto">
+                        <span class="font-bold text-slate-300 whitespace-nowrap">対象エリア:</span>
+                        <select id="calendar-area-select" class="bg-slate-800 text-white font-bold text-xs md:text-sm px-2.5 py-1 rounded border border-slate-600 focus:outline-none focus:border-blue-400 cursor-pointer">
+                            <option value="kyushu" selected>九州エリア (デフォルト)</option>
+                            <option value="system">システム</option>
+                            <option value="hokkaido">北海道</option>
+                            <option value="tohoku">東北</option>
+                            <option value="tokyo">東京</option>
+                            <option value="chubu">中部</option>
+                            <option value="hokuriku">北陸</option>
+                            <option value="kansai">関西</option>
+                            <option value="chugoku">中国</option>
+                            <option value="shikoku">四国</option>
+                        </select>
+                    </div>
+
+                    <!-- 指定時間帯 デュアルスライダー -->
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 bg-[#0f172a] px-3.5 py-2 rounded-lg border border-slate-700 shadow-sm w-full md:w-auto flex-1">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="font-bold text-slate-300 text-xs md:text-sm whitespace-nowrap">指定時間帯:</span>
+                            <span id="slider-time-display" class="font-num font-extrabold text-blue-300 text-xs md:text-sm bg-blue-950 px-2.5 py-0.5 rounded border border-blue-700 shadow-inner whitespace-nowrap">
+                                08:00 〜 20:00
+                            </span>
+                        </div>
+
+                        <div class="dual-slider-container w-full md:w-[340px]">
+                            <div class="dual-slider-track-bg"></div>
+                            <div id="dual-slider-highlight" class="dual-slider-track-highlight" style="left: 34%; width: 50%;"></div>
+                            <input type="range" id="slider-time-start" min="1" max="48" value="17" step="1" class="dual-slider-input" title="開始時刻">
+                            <input type="range" id="slider-time-end" min="1" max="48" value="40" step="1" class="dual-slider-input" title="終了時刻">
+                        </div>
+                    </div>
+
+                    <!-- 曜日・祝日フィルター -->
+                    <div class="flex items-center justify-between sm:justify-start gap-2 sm:gap-3 bg-[#0f172a] px-3.5 py-2 rounded-lg border border-slate-700 shadow-sm text-xs w-full md:w-auto">
+                        <span class="font-bold text-slate-300 whitespace-nowrap">表示対象:</span>
+                        <div class="flex items-center justify-around flex-1 sm:flex-initial gap-2 sm:gap-3">
+                            <label class="flex items-center gap-1 cursor-pointer font-bold text-slate-200 hover:text-white transition-colors whitespace-nowrap">
+                                <input type="checkbox" id="cal-filter-weekday" checked class="accent-blue-500 rounded cursor-pointer w-3.5 h-3.5">
+                                <span>平日</span>
+                            </label>
+                            <label class="flex items-center gap-1 cursor-pointer font-bold text-blue-400 hover:text-blue-300 transition-colors whitespace-nowrap">
+                                <input type="checkbox" id="cal-filter-saturday" checked class="accent-blue-500 rounded cursor-pointer w-3.5 h-3.5">
+                                <span>土曜</span>
+                            </label>
+                            <label class="flex items-center gap-1 cursor-pointer font-bold text-rose-400 hover:text-rose-300 transition-colors whitespace-nowrap">
+                                <input type="checkbox" id="cal-filter-sunday" checked class="accent-rose-500 rounded cursor-pointer w-3.5 h-3.5">
+                                <span>日曜</span>
+                            </label>
+                            <label class="flex items-center gap-1 cursor-pointer font-bold text-amber-400 hover:text-amber-300 transition-colors whitespace-nowrap">
+                                <input type="checkbox" id="cal-filter-holiday" checked class="accent-amber-500 rounded cursor-pointer w-3.5 h-3.5">
+                                <span>祝日</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- プリセットボタン -->
+                    <div class="grid grid-cols-3 gap-2 w-full md:w-auto md:flex md:items-center md:gap-1.5">
+                        <button class="cal-preset-btn px-2 sm:px-3 py-2 sm:py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs border border-slate-600 transition-colors shadow-sm text-center whitespace-nowrap" data-start="17" data-end="40">
+                            昼間 (8-20時)
+                        </button>
+                        <button class="cal-preset-btn px-2 sm:px-3 py-2 sm:py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs border border-slate-600 transition-colors shadow-sm text-center whitespace-nowrap" data-start="35" data-end="44">
+                            夕方 (17-22時)
+                        </button>
+                        <button class="cal-preset-btn px-2 sm:px-3 py-2 sm:py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs border border-slate-600 transition-colors shadow-sm text-center whitespace-nowrap" data-start="1" data-end="48">
+                            全日 (0-24時)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 左右2カラム分割コンテナ (期間 A & 期間 B) -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+
+                <!-- 左側: 期間 A (基準期間) -->
+                <div class="bg-[#1e2530] p-4 rounded-lg border border-slate-700 shadow-md space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2.5 border-b pb-2.5 border-slate-700">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-1 rounded bg-blue-600 text-white font-bold text-xs md:text-sm shadow">期間 A</span>
+                            <span class="font-bold text-white text-xs md:text-sm">基準期間:</span>
+                            <input type="date" id="cal-range-start-a" class="bg-slate-900 border border-slate-700 text-white text-xs md:text-sm px-2.5 py-1 rounded font-num font-bold cursor-pointer">
+                            <span class="text-slate-400 font-bold">〜</span>
+                            <input type="date" id="cal-range-end-a" class="bg-slate-900 border border-slate-700 text-white text-xs md:text-sm px-2.5 py-1 rounded font-num font-bold cursor-pointer">
+                        </div>
+
+                        <div class="flex items-center gap-1.5">
+                            <button class="cal-range-preset-a px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold border border-slate-600 text-xs transition-colors" data-days="7">
+                                直近7日
+                            </button>
+                            <button class="cal-range-preset-a px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold border border-slate-600 text-xs transition-colors" data-days="14">
+                                直近14日
+                            </button>
+                            <button class="cal-range-preset-a px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold border border-slate-600 text-xs transition-colors" data-days="30">
+                                直近30日
+                            </button>
+                            <button class="cal-range-preset-a px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold border border-slate-600 text-xs transition-colors" data-type="all">
+                                全期間
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 期間 A サマリーバー -->
+                    <div id="calendar-summary-bar-a" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
+
+                    <!-- 期間 A カレンダーリスト -->
+                    <div id="calendar-container-a"></div>
+                </div>
+
+                <!-- 右側: 期間 B (比較期間) -->
+                <div class="bg-[#1e2530] p-4 rounded-lg border border-slate-700 shadow-md space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2.5 border-b pb-2.5 border-slate-700">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-1 rounded bg-purple-600 text-white font-bold text-xs md:text-sm shadow">期間 B</span>
+                            <span class="font-bold text-white text-xs md:text-sm">比較期間:</span>
+                            <input type="date" id="cal-range-start-b" class="bg-slate-900 border border-slate-700 text-white text-xs md:text-sm px-2.5 py-1 rounded font-num font-bold cursor-pointer">
+                            <span class="text-slate-400 font-bold">〜</span>
+                            <input type="date" id="cal-range-end-b" class="bg-slate-900 border border-slate-700 text-white text-xs md:text-sm px-2.5 py-1 rounded font-num font-bold cursor-pointer">
+                        </div>
+
+                        <div class="flex items-center gap-1.5">
+                            <button id="btn-cal-prev-year" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold border border-slate-600 text-xs transition-colors" title="期間Aのちょうど1年前同期間を設定">
+                                1年前同期
+                            </button>
+                            <button id="btn-cal-prev-period" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold border border-slate-600 text-xs transition-colors" title="期間Aの直前同日数を設定">
+                                直前同期間
+                            </button>
+                            <button id="btn-cal-prev-month" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold border border-slate-600 text-xs transition-colors" title="期間Aの1ヶ月前同期を設定">
+                                前月同期
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 期間 B サマリーバー -->
+                    <div id="calendar-summary-bar-b" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
+
+                    <!-- 期間 B カレンダーリスト -->
+                    <div id="calendar-container-b"></div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- フッター -->
+    <footer class="bg-[#1e2530] border-t border-slate-700 py-2.5 mt-auto">
+        <div class="max-w-[1700px] mx-auto px-4 text-center text-xs text-slate-400">
+            JEPX Spot Analytics • 電力スポット価格・期間比較分析
+        </div>
+    </footer>
+
+    <!-- ローディングオーバーレイ -->
+    <div id="loading-overlay" class="fixed inset-0 bg-slate-950/70 flex items-center justify-center z-50 hidden">
+        <div class="bg-slate-900 px-5 py-3 rounded-lg shadow-xl flex items-center gap-3 border border-slate-700 text-white">
+            <div class="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+            <span id="loading-text" class="text-xs md:text-sm font-bold text-slate-200">読み込み中...</span>
+        </div>
+    </div>
+
+    <!-- アプリケーションスクリプト -->
+    <script src="js/holidays.js"></script>
+    <script src="js/parser.js"></script>
+    <script src="js/sampleData.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
